@@ -57,6 +57,7 @@ const { MidiController } = require( './modules/midi-controller.js' );
 const { OnyxController } = require( './modules/onyx-controller.js' );
 const { OBSController } = require( './modules/obs-controller.js' );
 const { HTTPController } = require( "./modules/http-controller.js" );
+const { HueController } = require('./modules/hue.js');
 
 // arbitrary controllers for unknown products that support standard protocols
 // const { TCPController } = require( "./modules/tcp-controller.js" );
@@ -76,6 +77,7 @@ modulesByName[ MidiController.name ] = MidiController;
 modulesByName[ OnyxController.name ] = OnyxController;
 modulesByName[ OBSController.name ] = OBSController;
 modulesByName[ HTTPController.name ] = HTTPController;
+modulesByName[ HueController.name ] = HueController;
 // modulesByName[ SocketIOController.name ] = SocketIOController;
 // modulesByName[ WebSocketController.name ] = WebSocketController;
 // modulesByName[ TCPController.name ] = TCPController;
