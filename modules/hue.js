@@ -60,13 +60,11 @@ class HueController extends Module {
       this.host = host;
     }
 
-    if (this.user) {
-      await this.initClient();
-    } else {
+    if (!this.user) {
       await this.createUser();
-      await this.authenticateUser();
     }
 
+    await this.initClient();
     await this.getScenes();
 
     console.log('HUE CONFIGURED SCENES: ');
@@ -87,6 +85,8 @@ class HueController extends Module {
 
   async initClient() {
     this.client = await api.createLocal(this.host).connect(this.user);
+    const bridgeConfig = await this.client.configuration.getConfiguration();
+    console.log(`Connected to Hue Bridge: ${bridgeConfig.name} :: ${bridgeConfig.ipaddress}`);
   }
 
   async getScenes() {
@@ -102,57 +102,47 @@ class HueController extends Module {
   }
 
   async createUser() {
-    // Create an unauthenticated instance of the Hue API so that we can create a new user
-    const unauthenticatedApi = await api.createLocal(this.host).connect();
+    return new Promise(async (resolve, reject) => {
+      // Create an unauthenticated instance of the Hue API so that we can create a new user
+      const unauthenticatedApi = await api.createLocal(this.host).connect();
+      console.error('Please press the Link button on the bridge to complete setup.');
 
-    try {
-      const { username } = await unauthenticatedApi.users.createUser('propresenter-watcher');
-      this.user = username;
+      const operation = retry.operation({
+        forever: true,
+        maxTimeout: 5000,
+      });
 
-      console.log(
-        '*******************************************************************************\n',
-      );
-      console.log(
-        'User has been created on the Hue Bridge. The following username can be used to\n' +
-          'authenticate with the Bridge and provide full local access to the Hue Bridge.\n' +
-          'YOU SHOULD TREAT THIS LIKE A PASSWORD\n',
-      );
-      console.log(`Hue Bridge User: ${username}`);
-      console.log(
-        '*******************************************************************************\n',
-      );
-    } catch (err) {
-      if (err.getHueErrorType() === 101) {
-        console.log('EEEEEE');
-      } else {
-        console.error(`Unexpected Error: ${err.message}`);
-      }
-    }
-  }
+      operation.attempt(async (count) => {
+        try {
+          console.log('Hue Auth Attempt: ', count);
+          const { username } = await unauthenticatedApi.users.createUser('propresenter-watcher');
+          this.user = username;
+          this.config = { ...this.config, user: username };
 
-  async authenticateUser() {
-    await this.initClient();
-
-    const operation = retry.operation({
-      forever: true,
-      maxTimeout: 1000,
-    });
-
-    operation.attempt(async (count) => {
-      try {
-        console.log('Hue Auth Attempt: ', count);
-        const bridgeConfig = await this.client.configuration.getConfiguration();
-        console.log(`Connected to Hue Bridge: ${bridgeConfig.name} :: ${bridgeConfig.ipaddress}`);
-      } catch (err) {
-        console.error(err);
-        if (err.getHueErrorType() === 101) {
-          console.error(
-            'The Link button on the bridge was not pressed. Please press the Link button and try again.',
+          console.log(
+            '*******************************************************************************\n',
           );
-        } else {
-          console.error(`Unexpected Error: ${err.message}`);
+          console.log(
+            'User has been created on the Hue Bridge. The following username can be used to\n' +
+              'authenticate with the Bridge and provide full local access to the Hue Bridge.\n' +
+              'YOU SHOULD TREAT THIS LIKE A PASSWORD\n',
+          );
+          console.log(`Hue Bridge User: ${username}`);
+          console.log(
+            '*******************************************************************************\n',
+          );
+
+          this.emit('save_config');
+
+          resolve();
+        } catch (err) {
+          if (err.getHueErrorType && err.getHueErrorType() === 101) {
+            operation.retry(err);
+          } else {
+            console.error(`Unexpected Error: ${err.message}`);
+          }
         }
-      }
+      });
     });
   }
 

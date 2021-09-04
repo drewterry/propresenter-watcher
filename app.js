@@ -422,11 +422,13 @@ function registerAllConfigured() {
 			for ( let instanceOptions of coptions ) {
 				cm = new controllerModule( instanceOptions );
 				cm.on( 'log', ( s ) => Log( s ) );
+				cm.on( 'save_config', () => saveConfig() );
 				registerControllerWithTriggers( cm );
 			}
 		} else {
 			cm = new controllerModule( coptions );
 			cm.on( 'log', ( s ) => Log( s ) );
+				cm.on( 'save_config', () => saveConfig() );
 			registerControllerWithTriggers( cm );
 		}
 	}
@@ -456,8 +458,8 @@ function setupProListeners() {
 	pro.removeAllListeners();
 
 	pro.on( 'sysupdate', ( e ) => {
-		Log( e );
-		if ( allow_triggers ) fireTriggers( '~sysupdate~', [], pro );
+		// Log( e );
+		// if ( allow_triggers ) fireTriggers( '~sysupdate~', [], pro );
 		broadcast( 'sysupdate', e );
 	} );
 
