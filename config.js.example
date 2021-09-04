@@ -72,6 +72,11 @@ const config = {
 			},
 		],
 
+		// hue: {
+    //   group: '1',
+    //   discoverBridge: true,
+    // },
+
 		// MIDI SETTINGS
 		midi: {
 			port: 4,
