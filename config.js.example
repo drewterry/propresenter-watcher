@@ -73,7 +73,7 @@ const config = {
 		],
 
 		// hue: {
-    //   group: '1',
+    //   group: null, // this is a string, the controller will print the available options on first run.
     //   discoverBridge: true,
     // },
 

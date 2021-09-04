@@ -65,10 +65,27 @@ class HueController extends Module {
     }
 
     await this.initClient();
-    await this.getScenes();
 
-    console.log('HUE CONFIGURED SCENES: ');
-    console.log(this.scenes);
+    if (!this.group) {
+      const groups = await this.client.groups.getAll();
+      console.log('\n-----------\n');
+      console.log(
+        '*** ERROR: No Hue Group configured.  Please choose a group and add to config file, then restart. ***\n',
+      );
+      console.log(` ID  | Name`);
+      console.log('-------------------');
+      groups
+        .filter((group) => group.type === 'Room')
+        .forEach((group) => {
+          console.log(`${`'${group.id}'`.padStart(4, ' ')} | ${group.name}`);
+        });
+      console.log('\n-----------\n');
+    } else {
+      await this.getScenes();
+
+      console.log('HUE CONFIGURED SCENES: ');
+      console.log(this.scenes);
+    }
   }
 
   async discoverBridge() {
@@ -90,6 +107,7 @@ class HueController extends Module {
   }
 
   async getScenes() {
+    console.log(this.group);
     this.scenes = (await this.client.scenes.getAll())
       .filter((scene) => scene.group === this.group)
       .reduce(
@@ -147,11 +165,15 @@ class HueController extends Module {
   }
 
   setScene(scene, transition) {
-    console.log('HUE: SET SCENE: ', scene);
-    const groupState = new GroupLightState()
-      .scene(this.scenes[scene])
-      .transitionInMillis(transition || 400);
-    this.client.groups.setGroupState(this.group, groupState);
+    if (this.group) {
+      console.log('HUE: SET SCENE: ', scene);
+      const groupState = new GroupLightState()
+        .scene(this.scenes[scene])
+        .transitionInMillis(transition || 400);
+      this.client.groups.setGroupState(this.group, groupState);
+    } else {
+      console.log('\n*** ERROR: No Hue Group Configured ***\n');
+    }
   }
 }
 
