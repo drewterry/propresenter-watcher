@@ -30,8 +30,14 @@ class HueController extends Module {
             'name of a scene configured in the hue app',
             false,
           ),
+          new ModuleTriggerArg(
+            'transition',
+            'number',
+            'transition time in milliseconds.  default: 400ms',
+            true,
+          ),
         ],
-        (_, scene) => this.setScene(scene),
+        (_, scene, transition) => this.setScene(scene, transition),
       ),
     );
 
@@ -150,9 +156,11 @@ class HueController extends Module {
     });
   }
 
-  setScene(scene) {
+  setScene(scene, transition) {
     console.log('HUE: SET SCENE: ', scene);
-    const groupState = new GroupLightState().scene(this.scenes[scene]);
+    const groupState = new GroupLightState()
+      .scene(this.scenes[scene])
+      .transitionInMillis(transition || 400);
     this.client.groups.setGroupState(this.group, groupState);
   }
 }
