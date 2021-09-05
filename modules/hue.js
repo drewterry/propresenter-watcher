@@ -31,13 +31,19 @@ class HueController extends Module {
             false,
           ),
           new ModuleTriggerArg(
+            'delay',
+            'number',
+            'delay time in milliseconds.  default: 0ms',
+            true,
+          ),
+          new ModuleTriggerArg(
             'transition',
             'number',
             'transition time in milliseconds.  default: 400ms',
             true,
           ),
         ],
-        (_, scene, transition) => this.setScene(scene, transition),
+        (_, scene, delay, transition) => this.setScene(scene, delay, transition),
       ),
     );
 
@@ -164,13 +170,13 @@ class HueController extends Module {
     });
   }
 
-  setScene(scene, transition) {
+  setScene(scene, delay, transition) {
     if (this.group) {
       console.log('HUE: SET SCENE: ', scene);
       const groupState = new GroupLightState()
         .scene(this.scenes[scene])
         .transitionInMillis(transition || 400);
-      this.client.groups.setGroupState(this.group, groupState);
+      setTimeout(() => this.client.groups.setGroupState(this.group, groupState), delay);
     } else {
       console.log('\n*** ERROR: No Hue Group Configured ***\n');
     }
