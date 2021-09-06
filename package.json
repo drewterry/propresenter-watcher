@@ -1,14 +1,24 @@
 {
-  "name": "propresenter-master-control",
+  "name": "propresenter-x-hue",
   "version": "1.0.0",
   "description": "Watches an active ProPresenter instance using the StageDisplay API and runs commands based on ProPresenter events.",
   "main": "app.js",
+  "bin": "app.js",
   "scripts": {
+    "start": "./start.sh",
+    "build": "pkg .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint -c .eslintrc.yml . --ext .js,.ts"
   },
   "author": "",
   "license": "ISC",
+  "pkg": {
+    "assets": "ui/**/*",
+    "targets": [
+      "node14-macos-x64"
+    ],
+    "outputPath": "dist"
+  },
   "dependencies": {
     "got": "^9.6.0",
     "isomorphic-ws": "^4.0.1",

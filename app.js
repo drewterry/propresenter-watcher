@@ -7,6 +7,7 @@
 const os = require( 'os' );
 const path = require( 'path' );
 const fs = require( 'fs' );
+const { exec } = require('child_process');
 
 // ----- SETUP HAPPENS HERE ----------------
 const HOME = os.homedir();
@@ -114,6 +115,7 @@ possible endpoints are the following:
 `;
 
 const server = http.createServer( httpHandler );
+exec("open 'http://localhost:7000/hue.html'");
 
 // handles realtime communication with frontend
 const wss = new WebSocket.Server( {
@@ -231,6 +233,10 @@ wss.on( 'connection', function connection( ws ) {
 			case 'toggle_allow_triggers':
 				allow_triggers = data;
 				broadcast( 'status', getStatus() );
+				break;
+			case 'get_scenes':
+				const scenes = configuredControllers.find(cm => cm instanceof HueController).scenes || {};
+				broadcast( 'scenes', Object.keys(scenes));
 				break;
 		}
 	} );
