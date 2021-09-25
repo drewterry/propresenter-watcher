@@ -182,7 +182,7 @@ class HueController extends Module {
     if (this.group) {
       console.log('HUE: SET SCENE: ', scene);
       const groupState = new GroupLightState()
-        .scene(this.scenes[scene])
+        .scene(this.scenes[scene].id)
         .transitionInMillis(transition || 400);
       setTimeout(() => this.client.groups.setGroupState(this.group, groupState), delay);
     } else {

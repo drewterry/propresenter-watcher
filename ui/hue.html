@@ -254,7 +254,8 @@
             <h2 id="hueString" class="mx-8">
               {{ getHueString() || `Select values to generate a config string.` }}
             </h2>
-            <v-btn @click="copyHueString()" v-if="hue.string">Copy</v-btn>
+            <v-btn class="mx-2" @click="copyHueString()" v-if="hue.string">Copy</v-btn>
+            <v-btn class="mx-2" @click="testScene()" v-if="hue.string">Test</v-btn>
           </div>
 
           <div class="d-flex">
@@ -379,6 +380,9 @@
           setScene(scene) {
             this.hue.scene = scene;
             this.$forceUpdate();
+          },
+          testScene() {
+            ws.bettersend('manual_notes_send', this.hue.string);
           },
           getHueString() {
             this.hue.string = '';
