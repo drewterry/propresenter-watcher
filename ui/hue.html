@@ -257,9 +257,9 @@
             <v-btn @click="copyHueString()" v-if="hue.string">Copy</v-btn>
           </div>
 
-          <div class="d-flex flex-column">
-            <v-select v-model="hue.scene" :items="hue.scenes" label="Scene"></v-select>
+          <div class="d-flex">
             <v-text-field
+              class="mr-8"
               v-model="hue.delay"
               :label="`Delay (ms). Default: 0ms`"
               type="number"
@@ -269,6 +269,20 @@
               :label="`Transition (ms). Default: 400ms`"
               type="number"
             ></v-text-field>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr)">
+            <div
+              v-for="scene in Object.entries(hue.scenes)"
+              style="margin: 1em"
+              @click="setScene(scene)"
+            >
+              <div
+                style="border-radius: 50%; height: 3em; width: 3em; margin: 1em auto"
+                :style="{ background: scene[1].color }"
+              ></div>
+              <p style="text-align: center">{{ scene[0] }}</p>
+            </div>
           </div>
         </v-main>
 
@@ -340,84 +354,8 @@
             }
             return this.logs.join('\n');
           },
-          flatSlidesWithGroup() {
-            let retval = [];
-            let counter = 0;
-            for (let group of this.pro_status.currentPresentation.presentationSlideGroups) {
-              for (let slide of group.groupSlides) {
-                slide.groupColor = group.groupColor;
-                slide.groupColorStyle = this.makeRGBA(group.groupColor);
-                slide.groupName = group.groupName;
-                slide.slideColorStyle = this.makeRGBA(slide.slideColor);
-                slide.slideIndex = counter++; // convert to number
-                slide.current = slide.slideIndex == this.currentSlideIndex;
-                retval.push(slide);
-              }
-            }
-            return retval;
-          },
         },
         methods: {
-          // makeRGBA(proColorString) {
-          //   let colorArray = proColorString.split(' ');
-          //   let [r, g, b] = colorArray.slice(0, 3).map((e) => +e * 255);
-          //   let a = colorArray[3];
-          //   return `rgba(${[r, g, b, a].join(',')})`;
-          // },
-          // isEmpty(obj) {
-          //   return Object.keys(obj).length == 0;
-          // },
-          // isExpanded(controller) {
-          //   let i = this.expanded.indexOf(controller.uuid);
-          //   return i > -1;
-          // },
-          // toggleExpand(controller) {
-          //   let i = this.expanded.indexOf(controller.uuid);
-          //   if (i == -1) this.expanded.push(controller.uuid);
-          //   else this.expanded.splice(i);
-          // },
-          // disable_controller(controller) {
-          //   for (let t of controller.triggers) t.enabled = controller.enabled;
-          // },
-          // do_manual_send() {
-          //   ws.bettersend('manual_notes_send', this.manual_send);
-          // },
-          // request_reconnect() {
-          //   // ws.bettersend('request_reconnect', this.selected_port);
-          //   this.config.controllers = this.controllers;
-          //   ws.bettersend('update_config', this.config);
-          // },
-          // update_midi() {
-          //   ws.bettersend('update_midi', this.selected_port);
-          // },
-          // update_config() {
-          //   console.log(this.config);
-          //   this.config.controllers = this.controllers;
-          //   ws.bettersend('update_config', this.config);
-          // },
-          // update_allow_triggers() {
-          //   ws.bettersend('toggle_allow_triggers', this.allow_triggers);
-          // },
-          // update_controller_config(controller) {
-          //   console.log(controller);
-          //   ws.bettersend('update_controller_config', controller);
-          // },
-          // update_controller(controller) {
-          //   console.log(controller);
-          //   ws.bettersend('update_controller', controller);
-          // },
-          // update_trigger(trigger) {
-          //   ws.bettersend('update_trigger', trigger);
-          // },
-          // trigger_slide(index) {
-          //   ws.bettersend('trigger_slide', index);
-          // },
-          // next() {
-          //   ws.bettersend('next_slide');
-          // },
-          // prev() {
-          //   ws.bettersend('prev_slide');
-          // },
           log(s) {
             console.log(s);
 
@@ -438,11 +376,15 @@
           getScenes() {
             ws.bettersend('get_scenes');
           },
+          setScene(scene) {
+            this.hue.scene = scene;
+            this.$forceUpdate();
+          },
           getHueString() {
             this.hue.string = '';
 
             if (this.hue.scene) {
-              this.hue.string += `hue_scene[${this.hue.scene}`;
+              this.hue.string += `hue_scene[${this.hue.scene[0]}`;
 
               if (this.hue.delay || this.hue.transition) {
                 this.hue.string += `, ${this.hue.delay || 0}`;
@@ -496,45 +438,18 @@
                     this.loading = false;
                   }
                   break;
-                // case 'remoteupdate':
                 case 'sdupdate':
                 case 'pro_status':
                   this.pro_status = data;
                   break;
                   this.pro_status = data;
                   break;
-                // case 'sddata':
-                //   break;
                 case 'slideupdate':
                   this.slides = data;
                   break;
-                // case 'sysupdate':
-                //   this.system = data;
-                //   break;
-                // case 'timersupdate':
-                //   this.timers = data;
-                //   break;
-                // case 'clockssupdate':
-                //   this.clocks = data;
-                //   break;
-                // case 'remotedata':
-                //   switch (data.action) {
-                //     case 'presentationTriggerIndex':
-                //       this.currentSlideIndex = parseInt(data.slideIndex);
-                //       let newpath = data.presentationPath;
-                //       if (newpath != this.presentationPath) {
-                //         ws.bettersend('pro_status');
-                //         this.presentationPath = newpath;
-                //       }
-                //       break;
-                //   }
-
-                //   break;
-                // case 'vmix':
-                //   this.vmix_status = data;
-                //   break;
                 case 'scenes':
                   this.hue.scenes = data;
+                  this.$forceUpdate();
                   break;
               }
             };

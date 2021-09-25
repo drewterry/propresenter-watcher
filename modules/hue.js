@@ -113,16 +113,24 @@ class HueController extends Module {
   }
 
   async getScenes() {
-    console.log(this.group);
-    this.scenes = (await this.client.scenes.getAll())
-      .filter((scene) => scene.group === this.group)
-      .reduce(
-        (scenes, scene) => ({
-          ...scenes,
-          [scene.name]: scene.id,
-        }),
-        {},
-      );
+    this.scenes = await this.client.scenes.getAll();
+
+    this.scenes = await Promise.all(
+      this.scenes
+        .filter((scene) => scene.group === this.group)
+        .map(async ({ id }) => await this.client.scenes.getScene(id)),
+    );
+
+    this.scenes = this.scenes.reduce(
+      (scenes, scene) => ({
+        ...scenes,
+        [scene.name]: {
+          id: scene.id,
+          color: buildCSSGradient(scene.lightstates),
+        },
+      }),
+      {},
+    );
   }
 
   async createUser() {
@@ -181,6 +189,54 @@ class HueController extends Module {
       console.log('\n*** ERROR: No Hue Group Configured ***\n');
     }
   }
+}
+
+function buildCSSGradient(lightStates) {
+  const step = 100 / Object.keys(lightStates).length;
+  const steps = Object.values(lightStates)
+    .filter((state) => state.xy)
+    .map((state, i) => `rgba(${lightStateToRgb(state).join(', ')}, 1) ${step * i}%`);
+  return `linear-gradient(90deg, ${steps.join(', ')})`;
+}
+
+function lightStateToRgb(lightState) {
+  const { xy, bri } = lightState;
+  return _getRGBFromXYState(xy[0], xy[1], bri);
+}
+
+function _getRGBFromXYState(x, y, brightness) {
+  const Y = brightness,
+    X = (Y / y) * x,
+    Z = (Y / y) * (1 - x - y);
+  let rgb = [
+    X * 1.612 - Y * 0.203 - Z * 0.302,
+    -X * 0.509 + Y * 1.412 + Z * 0.066,
+    X * 0.026 - Y * 0.072 + Z * 0.962,
+  ];
+
+  // Apply reverse gamma correction.
+  rgb = rgb.map(function (x) {
+    return x <= 0.0031308 ? 12.92 * x : (1.0 + 0.055) * Math.pow(x, 1.0 / 2.4) - 0.055;
+  });
+
+  // Bring all negative components to zero.
+  rgb = rgb.map(function (x) {
+    return Math.max(0, x);
+  });
+
+  // If one component is greater than 1, weight components by that value.
+  const max = Math.max(rgb[0], rgb[1], rgb[2]);
+  if (max > 1) {
+    rgb = rgb.map(function (x) {
+      return x / max;
+    });
+  }
+
+  rgb = rgb.map(function (x) {
+    return Math.floor(x * 255);
+  });
+
+  return rgb;
 }
 
 module.exports.HueController = HueController;

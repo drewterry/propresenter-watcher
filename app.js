@@ -236,7 +236,7 @@ wss.on( 'connection', function connection( ws ) {
 				break;
 			case 'get_scenes':
 				const scenes = configuredControllers.find(cm => cm instanceof HueController).scenes || {};
-				broadcast( 'scenes', Object.keys(scenes));
+				broadcast( 'scenes', scenes);
 				break;
 		}
 	} );
