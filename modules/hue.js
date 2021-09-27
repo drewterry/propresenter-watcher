@@ -192,7 +192,12 @@ class HueController extends Module {
 }
 
 function buildCSSGradient(lightStates) {
-  const step = 100 / Object.keys(lightStates).length;
+  const count = Object.keys(lightStates).length - 1;
+
+  if (count === 0) return `rgb(${lightStateToRgb(state).join(', ')})`;
+
+  const step = 100 / count;
+
   const steps = Object.values(lightStates)
     .filter((state) => state.xy)
     .map((state, i) => `rgba(${lightStateToRgb(state).join(', ')}, 1) ${step * i}%`);
