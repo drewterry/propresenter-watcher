@@ -14,7 +14,11 @@ const HOME = os.homedir();
 const CONF_FILE = path.join( HOME, '.config', 'pro-presenter-control.json' );
 
 // app-level configuration file 
-const config = require( './config.js' );
+try {
+	const config = require( './config.js' );
+} catch (error) {
+	console.log('Config.js not found.')
+}
 loadLocalConfigFile();
 
 const { markdown } = require( './helpers.js' );
