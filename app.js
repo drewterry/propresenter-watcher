@@ -54,7 +54,16 @@ Object.prototype.clear = function () {
 const { ProController } = require( './modules/pro.js' );
 
 // Controller Modules for Known Products
-const { HueController } = require('./modules/hue.js');
+const { VmixController } = require( './modules/vmix-controller.js' );
+// const { X32Controller } = require( './modules/x32-controller.js' );
+const { JMLiveEventController } = require( './modules/jm-live-event-controller.js' );
+const { CompanionController } = require( './modules/companion-controller.js' );
+// const { OscController } = require( './modules/osc-controller.js' );
+// const { MidiController } = require( './modules/midi-controller.js' );
+const { OnyxController } = require( './modules/onyx-controller.js' );
+const { OBSController } = require( './modules/obs-controller.js' );
+const { HTTPController } = require( './modules/http-controller.js' );
+const { HueController } = require( './modules/hue.js' );
 
 // arbitrary controllers for unknown products that support standard protocols
 // const { TCPController } = require( "./modules/tcp-controller.js" );
@@ -66,6 +75,15 @@ const { HueController } = require('./modules/hue.js');
 const modulesByName = {};
 modulesByName[ ProController.name ] = ProController;
 modulesByName[ HueController.name ] = HueController;
+modulesByName[ VmixController.name ] = VmixController;
+// modulesByName[ X32Controller.name ] = X32Controller;
+modulesByName[ JMLiveEventController.name ] = JMLiveEventController;
+modulesByName[ CompanionController.name ] = CompanionController;
+// modulesByName[ OscController.name ] = OscController;
+// modulesByName[ MidiController.name ] = MidiController;
+modulesByName[ OnyxController.name ] = OnyxController;
+modulesByName[ OBSController.name ] = OBSController;
+modulesByName[ HTTPController.name ] = HTTPController;
 // modulesByName[ SocketIOController.name ] = SocketIOController;
 // modulesByName[ WebSocketController.name ] = WebSocketController;
 // modulesByName[ TCPController.name ] = TCPController;
