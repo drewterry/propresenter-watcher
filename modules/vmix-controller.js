@@ -276,7 +276,7 @@ class VmixController extends Module {
             false
           ),
         ],
-        ( _, script_name = '' ) =>
+        ( _, script_name = '', stream_number = 1 ) =>
           this.scriptStart( script_name )
       )
     );

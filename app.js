@@ -18,7 +18,7 @@ const config = {};
 try {
 	config = require( './config.js' );
 } catch (error) {
-	console.log('Config.js not found.')
+	console.log('config.js not found.  Attempting to load local config.json.')
 }
 loadLocalConfigFile();
 
@@ -74,7 +74,6 @@ const { HueController } = require( './modules/hue.js' );
 
 const modulesByName = {};
 modulesByName[ ProController.name ] = ProController;
-modulesByName[ HueController.name ] = HueController;
 modulesByName[ VmixController.name ] = VmixController;
 modulesByName[ X32Controller.name ] = X32Controller;
 modulesByName[ JMLiveEventController.name ] = JMLiveEventController;
@@ -84,6 +83,7 @@ modulesByName[ MidiController.name ] = MidiController;
 modulesByName[ OnyxController.name ] = OnyxController;
 modulesByName[ OBSController.name ] = OBSController;
 modulesByName[ HTTPController.name ] = HTTPController;
+modulesByName[ HueController.name ] = HueController;
 // modulesByName[ SocketIOController.name ] = SocketIOController;
 // modulesByName[ WebSocketController.name ] = WebSocketController;
 // modulesByName[ TCPController.name ] = TCPController;
@@ -392,55 +392,65 @@ function saveConfig() {
 }
 
 function registerAllConfigured() {
-	Log( 'Registering all configured controllers' );
+  // ----- SETUP THE WEBLOGGER ------
+  if (config.USEWEBLOG) {
+    const WebLogger = require('./modules/web-logger.js');
+    let weblog = new WebLogger(config.LOGGER_URL, config.LOGGER_KEY);
+    Log = function (s, allowWebLog = true) {
+      if (allowWebLog) weblog.log(s);
+      console.log(s);
+    };
+  }
+	
+  Log('Registering all configured controllers');
 
-	// since this might be the second time we have processed the configuration
-	// we need to delete previously existing instances of controller modules
-	// that means at the end of this, we will need to re-establish all event listeners
-	for ( let mod of Object.values( modulesByName ) ) {
-		if ( mod.instances ) {
-			mod.instances.forEach( e => e.dispose() );
-			mod.instances.length = 0;
-		}
-	}
+  // since this might be the second time we have processed the configuration
+  // we need to delete previously existing instances of controller modules
+  // that means at the end of this, we will need to re-establish all event listeners
+  for (let mod of Object.values(modulesByName)) {
+    if (mod.instances) {
+      mod.instances.forEach((e) => e.dispose());
+      mod.instances.length = 0;
+    }
+  }
 
-	// reset the Controller and Trigger registrations
-	configuredControllers.clear();
-	configuredControllersByUuid.clear();
-	configuredTriggers.clear();
-	configuredTriggersByUuid.clear();
+  // reset the Controller and Trigger registrations
+  configuredControllers.clear();
+  configuredControllersByUuid.clear();
+  configuredTriggers.clear();
+  configuredTriggersByUuid.clear();
 
-	// restore the global controller first
-	registerControllerWithTriggers( globalController );
+  // restore the global controller first
+  registerControllerWithTriggers(globalController);
 
-	// now, process the configuration and create all expected controllers
-	// controller keys in the config file must match the static Module name of the controller
-	for ( let k of Object.keys( config.controllers ) ) {
-		if ( !k in modulesByName ) continue;
-		let controllerModule = modulesByName[ k ];
-		let coptions = config.controllers[ k ];
-		let cm;
-		if ( Array.isArray( coptions ) ) {
-			for ( let instanceOptions of coptions ) {
-				cm = new controllerModule( instanceOptions );
-				cm.on( 'log', ( s ) => Log( s ) );
-				cm.on( 'save_config', () => saveConfig() );
-				registerControllerWithTriggers( cm );
-			}
-		} else {
-			cm = new controllerModule( coptions );
-			cm.on( 'log', ( s ) => Log( s ) );
-				cm.on( 'save_config', () => saveConfig() );
-			registerControllerWithTriggers( cm );
-		}
-	}
-	// we now have a configured module for each of the controllers specified in the
-	// configuration file. Each of them should have created their own instances by now
-	// and each of them should manage their own lifecycle
+  // now, process the configuration and create all expected controllers
+  // controller keys in the config file must match the static Module name of the controller
+  for (let k of Object.keys(config.controllers)) {
+    if (!k in modulesByName) continue;
+    let controllerModule = modulesByName[k];
+    let coptions = config.controllers[k];
+    let cm;
+    if (Array.isArray(coptions)) {
+      for (let instanceOptions of coptions) {
+        cm = new controllerModule(instanceOptions);
+        cm.on('log', (s) => Log(s));
+        cm.on('save_config', () => saveConfig());
+        registerControllerWithTriggers(cm);
+      }
+    } else {
+      cm = new controllerModule(coptions);
+      cm.on('log', (s) => Log(s));
+      cm.on('save_config', () => saveConfig());
+      registerControllerWithTriggers(cm);
+    }
+  }
+  // we now have a configured module for each of the controllers specified in the
+  // configuration file. Each of them should have created their own instances by now
+  // and each of them should manage their own lifecycle
 
-	// // finally, reconnect ProPresenter Listeners
-	pro = ProController.master;
-	setupProListeners();
+  // // finally, reconnect ProPresenter Listeners
+  pro = ProController.master;
+  setupProListeners();
 }
 
 // takes a configured controller module and adds it to the
