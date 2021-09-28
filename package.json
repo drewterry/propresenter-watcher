@@ -1,20 +1,32 @@
 {
-  "name": "propresenter-master-control",
+  "name": "propresenter-x-hue",
   "version": "1.0.0",
   "description": "Watches an active ProPresenter instance using the StageDisplay API and runs commands based on ProPresenter events.",
   "main": "app.js",
+  "bin": "app.js",
   "scripts": {
+    "start": "./start.sh",
+    "build": "pkg .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint -c .eslintrc.yml . --ext .js,.ts"
   },
   "author": "",
   "license": "ISC",
+  "pkg": {
+    "assets": "ui/**/*",
+    "targets": [
+      "node14-macos-x64"
+    ],
+    "outputPath": "dist"
+  },
   "dependencies": {
     "got": "^9.6.0",
     "isomorphic-ws": "^4.0.1",
-    "midi": "^1.0.4",
-    "obs-websocket-js": "^4.0.2",
+    "midi": "^2.0.0",
+    "node-hue-api": "^5.0.0-beta.8",
+    "obs-websocket-js": "^4.0.3",
     "osc": "^2.4.2",
+    "retry": "^0.13.1",
     "socket.io": "^2.2.0",
     "telnet-client": "^1.4.9",
     "uuid": "^8.3.2",
@@ -30,6 +42,7 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.0",
+    "pkg": "^5.3.2",
     "prettier": "^2.4.0"
   }
 }

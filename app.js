@@ -7,13 +7,19 @@
 const os = require( 'os' );
 const path = require( 'path' );
 const fs = require( 'fs' );
+const { exec } = require('child_process');
 
 // ----- SETUP HAPPENS HERE ----------------
 const HOME = os.homedir();
 const CONF_FILE = path.join( HOME, '.config', 'pro-presenter-control.json' );
 
 // app-level configuration file 
-const config = require( './config.js' );
+const config = {};
+try {
+	config = require( './config.js' );
+} catch (error) {
+	console.log('config.js not found.  Attempting to load local config.json.')
+}
 loadLocalConfigFile();
 
 const { markdown } = require( './helpers.js' );
@@ -56,7 +62,8 @@ const { OscController } = require( './modules/osc-controller.js' );
 const { MidiController } = require( './modules/midi-controller.js' );
 const { OnyxController } = require( './modules/onyx-controller.js' );
 const { OBSController } = require( './modules/obs-controller.js' );
-const { HTTPController } = require( "./modules/http-controller.js" );
+const { HTTPController } = require( './modules/http-controller.js' );
+const { HueController } = require( './modules/hue.js' );
 
 // arbitrary controllers for unknown products that support standard protocols
 // const { TCPController } = require( "./modules/tcp-controller.js" );
@@ -76,6 +83,7 @@ modulesByName[ MidiController.name ] = MidiController;
 modulesByName[ OnyxController.name ] = OnyxController;
 modulesByName[ OBSController.name ] = OBSController;
 modulesByName[ HTTPController.name ] = HTTPController;
+modulesByName[ HueController.name ] = HueController;
 // modulesByName[ SocketIOController.name ] = SocketIOController;
 // modulesByName[ WebSocketController.name ] = WebSocketController;
 // modulesByName[ TCPController.name ] = TCPController;
@@ -130,6 +138,7 @@ possible endpoints are the following:
 `;
 
 const server = http.createServer( httpHandler );
+exec("open 'http://localhost:7000/hue.html'");
 
 // handles realtime communication with frontend
 const wss = new WebSocket.Server( {
@@ -248,6 +257,10 @@ wss.on( 'connection', function connection( ws ) {
 				allow_triggers = data;
 				broadcast( 'status', getStatus() );
 				break;
+			case 'get_scenes':
+				const scenes = configuredControllers.find(cm => cm instanceof HueController).scenes || {};
+				broadcast( 'scenes', scenes);
+				break;
 		}
 	} );
 } );
@@ -341,6 +354,7 @@ function loadLocalConfigFile() {
 			config[ key ] = localconf[ key ];
 		}
 	} catch ( e ) {
+		console.error(e);
 		console.log( `WARNING: Could not read local settings from ${CONF_FILE}` );
 	}
 }
@@ -420,11 +434,13 @@ function registerAllConfigured() {
 			for ( let instanceOptions of coptions ) {
 				cm = new controllerModule( instanceOptions );
 				cm.on( 'log', ( s ) => Log( s ) );
+				cm.on( 'save_config', () => saveConfig() );
 				registerControllerWithTriggers( cm );
 			}
 		} else {
 			cm = new controllerModule( coptions );
 			cm.on( 'log', ( s ) => Log( s ) );
+			cm.on( 'save_config', () => saveConfig() );
 			registerControllerWithTriggers( cm );
 		}
 	}
@@ -454,8 +470,8 @@ function setupProListeners() {
 	pro.removeAllListeners();
 
 	pro.on( 'sysupdate', ( e ) => {
-		Log( e );
-		if ( allow_triggers ) fireTriggers( '~sysupdate~', [], pro );
+		// Log( e );
+		// if ( allow_triggers ) fireTriggers( '~sysupdate~', [], pro );
 		broadcast( 'sysupdate', e );
 	} );
 
@@ -676,6 +692,7 @@ function fireTriggersFromNotes( noteText ) {
 
 	if ( !used ) {
 		console.log( 'No triggers configured for this data:' );
+		console.log( noteText );
 	}
 }
 

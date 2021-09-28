@@ -350,7 +350,7 @@ class ProSDClient extends EventEmitter {
   }
 
   check( data ) {
-    this.parent.log( data );
+    // this.parent.log( data );
     let newdata = {};
     switch ( data.acn ) {
       case 'ath':
