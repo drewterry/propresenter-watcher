@@ -55,10 +55,10 @@ const { ProController } = require( './modules/pro.js' );
 
 // Controller Modules for Known Products
 const { VmixController } = require( './modules/vmix-controller.js' );
-// const { X32Controller } = require( './modules/x32-controller.js' );
+const { X32Controller } = require( './modules/x32-controller.js' );
 const { JMLiveEventController } = require( './modules/jm-live-event-controller.js' );
 const { CompanionController } = require( './modules/companion-controller.js' );
-// const { OscController } = require( './modules/osc-controller.js' );
+const { OscController } = require( './modules/osc-controller.js' );
 // const { MidiController } = require( './modules/midi-controller.js' );
 const { OnyxController } = require( './modules/onyx-controller.js' );
 const { OBSController } = require( './modules/obs-controller.js' );
@@ -76,10 +76,10 @@ const modulesByName = {};
 modulesByName[ ProController.name ] = ProController;
 modulesByName[ HueController.name ] = HueController;
 modulesByName[ VmixController.name ] = VmixController;
-// modulesByName[ X32Controller.name ] = X32Controller;
+modulesByName[ X32Controller.name ] = X32Controller;
 modulesByName[ JMLiveEventController.name ] = JMLiveEventController;
 modulesByName[ CompanionController.name ] = CompanionController;
-// modulesByName[ OscController.name ] = OscController;
+modulesByName[ OscController.name ] = OscController;
 // modulesByName[ MidiController.name ] = MidiController;
 modulesByName[ OnyxController.name ] = OnyxController;
 modulesByName[ OBSController.name ] = OBSController;
