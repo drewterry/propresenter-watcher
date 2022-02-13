@@ -19,10 +19,10 @@ jobs:
           node-version: '14.x'
           cache: 'npm'
 
-      - name: Install ALSA dev
-        run: |
-          sudo apt-get update
-          sudo apt-get install libasound2-dev
+#       - name: Install ALSA dev
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install libasound2-dev
 
       - name: Install dependencies
         run: npm install
