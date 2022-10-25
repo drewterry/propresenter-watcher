@@ -15,7 +15,7 @@
   "pkg": {
     "assets": "ui/**/*",
     "targets": [
-      "node14-macos-x64"
+      "node14-macos-arm64"
     ],
     "outputPath": "dist"
   },
