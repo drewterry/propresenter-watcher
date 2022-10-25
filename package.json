@@ -1,6 +1,6 @@
 {
   "name": "propresenter-x-hue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Watches an active ProPresenter instance using the StageDisplay API and runs commands based on ProPresenter events.",
   "main": "app.js",
   "bin": "app.js",
